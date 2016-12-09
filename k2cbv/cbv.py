@@ -16,6 +16,7 @@ import george
 import matplotlib.pyplot as pl
 from matplotlib.ticker import MaxNLocator
 import os, sys
+print(k2plr.__file__, sys.path)
 import logging
 log = logging.getLogger(__name__)
 
