@@ -1,0 +1,3 @@
+[submodule "k2plr"]
+	path = k2plr
+	url = https://github.com/rodluger/k2plr
