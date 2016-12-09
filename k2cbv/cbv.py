@@ -32,7 +32,8 @@ def GetLightCurve(EPIC, campaign, model = 'everest1', **kwargs):
     time = data.time
     flux = data.flux
     mask = data.mask
-    breakpoints = data.breakpoints
+    breakpoints = [len(data.time) - 1]
+    
   else:
     raise NotImplementedError("")
     
@@ -69,7 +70,8 @@ def GetStars(campaign, module, max_stars = None, model = 'everest1', **kwargs):
       t = data.time
       y = data.flux
       m = data.mask
-      breakpoints = data.breakpoints
+      breakpoints = [len(data.time) - 1]
+      
     else:
       raise NotImplementedError("")
       
@@ -389,7 +391,7 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
             
   return X
 
-def GetX(campaign, module, model = 'nPLD', clobber = False, **kwargs):
+def GetX(campaign, module, model = 'everest1', clobber = False, **kwargs):
   '''
   Get the design matrix for a given K2 campaign and module.
   
@@ -505,4 +507,9 @@ def FitAll(campaign, module, model = 'everest1', max_stars = None, **kwargs):
   N = len(stars)
   for n in range(N):
     log.info("Processing light curve %d/%d..." % (n + 1, N))
-    Fit(stars[n], campaign = campaign, module = module, max_stars = max_stars, model = model, **kwargs)
+    try:
+      Fit(stars[n], campaign = campaign, module = module, max_stars = max_stars, model = model, **kwargs)
+    except KeyboardInterrupt:
+      sys.exit()
+    except:
+      continue
