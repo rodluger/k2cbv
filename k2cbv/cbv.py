@@ -16,7 +16,6 @@ import george
 import matplotlib.pyplot as pl
 from matplotlib.ticker import MaxNLocator
 import os, sys
-print(k2plr.__file__, sys.path)
 import logging
 log = logging.getLogger(__name__)
 
@@ -57,12 +56,14 @@ def GetStars(campaign, module, max_stars = None, model = 'everest1', **kwargs):
   masks = []
   for n in range(N):
     
-    log.info("Processing light curve %d/%d..." % (n + 1, N))
+    log.info("Downloading light curve %d/%d..." % (n + 1, N))
     
     # Get the data
     if model == 'everest1':
       try:
         data = k2plr.EVEREST(stars[n], version = 1)
+      except KeyboardInterrupt:
+        sys.exit()
       except:
         continue
       t = data.time
@@ -504,4 +505,4 @@ def FitAll(campaign, module, model = 'everest1', max_stars = None, **kwargs):
   N = len(stars)
   for n in range(N):
     log.info("Processing light curve %d/%d..." % (n + 1, N))
-    Fit(stars[n], campaign = campaign, module = module, max_stars = max_stars, model = model)
+    Fit(stars[n], campaign = campaign, module = module, max_stars = max_stars, model = model, **kwargs)
