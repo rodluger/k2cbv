@@ -16,6 +16,7 @@ import george
 import matplotlib.pyplot as pl
 from matplotlib.ticker import MaxNLocator
 import os, sys
+from urllib.error import HTTPError
 import logging
 log = logging.getLogger(__name__)
 
@@ -32,8 +33,13 @@ def GetLightCurve(EPIC, campaign, model = 'everest1', **kwargs):
     time = data.time
     flux = data.flux
     mask = data.mask
-    breakpoints = [len(data.time) - 1]
-    
+    breakpoints = data.breakpoints
+  elif model == 'k2sc':
+    data = k2plr.K2SC(EPIC)
+    time = data.time
+    flux = data.pdcflux
+    mask = data.mask
+    breakpoints = data.breakpoints
   else:
     raise NotImplementedError("")
     
@@ -60,20 +66,24 @@ def GetStars(campaign, module, max_stars = None, model = 'everest1', **kwargs):
     log.info("Downloading light curve %d/%d..." % (n + 1, N))
     
     # Get the data
-    if model == 'everest1':
-      try:
-        data = k2plr.EVEREST(stars[n], version = 1)
-      except KeyboardInterrupt:
-        sys.exit()
-      except:
-        continue
-      t = data.time
-      y = data.flux
-      m = data.mask
-      breakpoints = [len(data.time) - 1]
-      
-    else:
-      raise NotImplementedError("")
+    try:
+      if model == 'everest1':
+        data = k2plr.EVEREST(stars[n], version = 1) 
+        t = data.time
+        y = data.flux
+        m = data.mask
+        breakpoints = data.breakpoints
+      elif model == 'k2sc':
+        data = k2plr.K2SC(stars[n])
+        t = data.time
+        y = data.pdcflux
+        m = data.mask
+        breakpoints = data.breakpoints
+      else:
+        raise NotImplementedError("")
+    except HTTPError:
+      # Target not found
+      continue
       
     if n == 0:
       time = t
@@ -106,6 +116,9 @@ def GetStars(campaign, module, max_stars = None, model = 'everest1', **kwargs):
 def SavGol(t, y, svwin = 99, svorder = 2, **kwargs):
   '''
   Masks NaNs and applies a Savitsky-Golay low-pass filter to `y`
+  We might have to play with the parameters. A window size of 99
+  cadences seems to work well for Everest, but I think we need a 
+  larger window (or a different filter) for K2SC.
   
   '''
   
@@ -379,6 +392,7 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
       # our design matrix so far, then repeat. The tricky bit
       # is masking the NaNs so we don't get linalg errors.
       if n < nreg - 1:
+
         nans = np.where(np.isnan(X[b][:,1]))[0]
         fins = np.delete(np.arange(len(t)), nans)
         mX = np.delete(X[b], nans, axis = 0)
@@ -388,7 +402,7 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
           f[i][fins] = mf - np.dot(mX, np.linalg.solve(A, np.dot(mX.T, mf)))
           if smooth_in:
             f[i] = SavGol(t, f[i], **kwargs)
-            
+
   return X
 
 def GetX(campaign, module, model = 'everest1', clobber = False, **kwargs):
@@ -416,7 +430,7 @@ def GetX(campaign, module, model = 'everest1', clobber = False, **kwargs):
       lcs = np.load(lcfile)
       time = lcs['time']
       breakpoints = lcs['breakpoints']
-      fluxes = lcs['fluxes']
+      fluxes = lcs['fluxes'][:kwargs.get('max_stars', None)]
     
     # Get the design matrix  
     X = Compute(time, fluxes, breakpoints, path = path, **kwargs)
@@ -440,7 +454,7 @@ def Fit(EPIC, campaign = None, module = None, model = 'everest1', **kwargs):
     campaign = Campaign(EPIC)
   if module is None:
     module = Module(EPIC)
-  time, flux, breakpoints, mask = GetLightCurve(EPIC, campaign, **kwargs)
+  time, flux, breakpoints, mask = GetLightCurve(EPIC, campaign, model = model, **kwargs)
   path = os.path.join(CBV_DAT, 'c%02d' % campaign, '%2d' % module, model)
   
   # Get the design matrix  
@@ -461,12 +475,16 @@ def Fit(EPIC, campaign = None, module = None, model = 'everest1', **kwargs):
     B = np.dot(mX.T, flux[masked_inds])
     weights[b] = np.linalg.solve(A, B)
     model[b] = np.dot(X[inds], weights[b])
-    
+
     # Vertical alignment
     if b == 0:
       model[b] -= np.nanmedian(model[b])
     else:
-      model[b] += (model[b - 1][-1] - model[b][0])
+      # Match the first finite model point on either side of the break
+      # We could consider something more elaborate in the future
+      i0 = -1 - np.argmax([np.isfinite(model[b - 1][-i]) for i in range(1, len(model[b - 1]) - 1)])
+      i1 = np.argmax([np.isfinite(model[b][i]) for i in range(len(model[b]))])
+      model[b] += (model[b - 1][i0] - model[b][i1])
   
   # Join model and normalize  
   model = np.concatenate(model)
@@ -509,7 +527,5 @@ def FitAll(campaign, module, model = 'everest1', max_stars = None, **kwargs):
     log.info("Processing light curve %d/%d..." % (n + 1, N))
     try:
       Fit(stars[n], campaign = campaign, module = module, max_stars = max_stars, model = model, **kwargs)
-    except KeyboardInterrupt:
-      sys.exit()
-    except:
+    except HTTPError:
       continue
