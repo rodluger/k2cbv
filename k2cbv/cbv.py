@@ -20,7 +20,7 @@ from urllib.error import HTTPError
 import logging
 log = logging.getLogger(__name__)
 
-__all__ = ['FitAll', 'Fit', 'GetX']
+__all__ = ['FitAll', 'Fit', 'GetX', 'GetStars']
 
 def GetLightCurve(EPIC, campaign, model = 'everest1', **kwargs):
   '''
