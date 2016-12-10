@@ -16,7 +16,7 @@ import george
 import matplotlib.pyplot as pl
 from matplotlib.ticker import MaxNLocator
 import os, sys
-from urllib2.error import HTTPError
+from urllib2 import HTTPError
 import logging
 log = logging.getLogger(__name__)
 
