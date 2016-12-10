@@ -59,3 +59,5 @@ And this is what some of the final, de-trended light curves look like:
 In general it works pretty well. We still need to fine-tune the smoothing -- I'm using a simple Savitsky-Golay low pass filter on the input light curves *and* on the regressors, but there's still some residual higher-frequency noise. Also, in some light curves (such as the last one), the CBVs try to fit out some of the intrinsic stellar variability, which is bad. A good GP model could help, but my GPs wouldn't work for this, since they were trained to fit this signal in the first place.
 
 I find that this works for K2SC, but not as well, mostly because the low frequency systematics are smaller and the CBVs are more dominated by white noise/higher frequency noise (mostly stellar variability I think). A better filtering method might help with this.
+
+The final issue is that this introduces jumps in some of the light curves. This is only going to be an issue for campaigns with breakpoints occuring during data gaps (only Campaign 1 for Everest), so I'm not too worried about that. But we could think of using a GP or a good polynomial to smooth those discontinuities.
