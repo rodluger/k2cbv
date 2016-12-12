@@ -41,7 +41,7 @@ fname = 'EPIC_200000004_mast.fits'
 lc = Table.read(fname)
 
 time, flux = lc['time'], lc['flux'] - lc['trposi'] + np.nanmedian(lc['trposi'])
-mask = np.where(np.isfinite(flux))
+mask = np.where(~np.isfinite(flux))
 path = '.'
 
 # Get the design matrix 
