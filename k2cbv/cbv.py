@@ -470,7 +470,7 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
           mf = np.delete(fluxes[i,inds], nans)
           f[i][fins] = mf - np.dot(mX, np.linalg.solve(A, np.dot(mX.T, mf)))
           if smooth_in:
-            f[i] = SavGol(t, f[i], **kwargs)
+            f[i] = gpfilt_iter(f[i],t,5)
 
   return X
 
