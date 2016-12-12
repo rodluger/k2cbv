@@ -33,26 +33,26 @@ weights = [None for b in range(len(breakpoints))]
 
 for b in range(len(breakpoints)):
 
-# Get the indices for this light curve segment
-inds = GetChunk(time, breakpoints, b)
-masked_inds = GetChunk(time, breakpoints, b, mask = mask)
+	# Get the indices for this light curve segment
+	inds = GetChunk(time, breakpoints, b)
+	masked_inds = GetChunk(time, breakpoints, b, mask = mask)
 
-# Ordinary least squares
-mX = X[masked_inds]
-A = np.dot(mX.T, mX)
-B = np.dot(mX.T, flux[masked_inds])
-weights[b] = np.linalg.solve(A, B)
-model[b] = np.dot(X[inds], weights[b])
+	# Ordinary least squares
+	mX = X[masked_inds]
+	A = np.dot(mX.T, mX)
+	B = np.dot(mX.T, flux[masked_inds])
+	weights[b] = np.linalg.solve(A, B)
+	model[b] = np.dot(X[inds], weights[b])
 
-# Vertical alignment
-if b == 0:
-	model[b] -= np.nanmedian(model[b])
-else:
-	# Match the first finite model point on either side of the break
-	# We could consider something more elaborate in the future
-	i0 = -1 - np.argmax([np.isfinite(model[b - 1][-i]) for i in range(1, len(model[b - 1]) - 1)])
-	i1 = np.argmax([np.isfinite(model[b][i]) for i in range(len(model[b]))])
-	model[b] += (model[b - 1][i0] - model[b][i1])
+	# Vertical alignment
+	if b == 0:
+		model[b] -= np.nanmedian(model[b])
+	else:
+		# Match the first finite model point on either side of the break
+		# We could consider something more elaborate in the future
+		i0 = -1 - np.argmax([np.isfinite(model[b - 1][-i]) for i in range(1, len(model[b - 1]) - 1)])
+		i1 = np.argmax([np.isfinite(model[b][i]) for i in range(len(model[b]))])
+		model[b] += (model[b - 1][i0] - model[b][i1])
 
 # Join model and normalize	
 model = np.concatenate(model)
