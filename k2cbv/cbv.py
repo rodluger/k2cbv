@@ -537,7 +537,6 @@ def Fit_Halo(fname, campaign = None, module = None, breakpoints = [],
   model = [None for b in range(len(breakpoints))]
   weights = [None for b in range(len(breakpoints))]
 
-
   for b in range(len(breakpoints)):
     
     # Get the indices for this light curve segment
@@ -589,7 +588,7 @@ def Fit_Halo(fname, campaign = None, module = None, breakpoints = [],
   fig.savefig('atlas.pdf')
   pl.close()
 
-  return 
+  return model
   
 def FitAll(campaign, module, model = 'everest1', max_stars = None, **kwargs):
   '''
