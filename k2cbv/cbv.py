@@ -19,6 +19,9 @@ import os, sys
 from urllib2 import HTTPError
 import logging
 from astropy.table import Table
+import george
+from george import kernels
+
 
 log = logging.getLogger(__name__)
 
@@ -138,6 +141,69 @@ def SavGol(t, y, svwin = 99, svorder = 2, **kwargs):
   yfin[nans] = np.nan
   
   return yfin
+
+###----------------------------------------------
+###----------------------------------------------
+
+def gpfilt_1(flux,time,scale,yerr=0.01):
+    '''Do a 1D squared exponential GP fit'''
+
+    keep = np.isfinite(flux)
+
+    # initialize a kernel
+    k1 = 1.0*kernels.ExpSquaredKernel(scale)
+    gp = gp = george.GP(k1)
+    gp.compute(time[keep],yerr=yerr)
+
+    # do a first prediction
+    ypred, ycov = gp.predict(flux[keep],time)
+    err_pred = np.sqrt(np.diag(ycov)+yerr**2)
+
+    return ypred, err_pred, gp
+
+###----------------------------------------------
+###----------------------------------------------
+
+def gp_negll(par, X, y, gp):
+    gp.kernel.pars[0] = 10**par[0]
+    gp.compute(X, yerr = 10**par[1], sort=False)
+    return -gp.lnlikelihood(y)
+
+###----------------------------------------------
+###----------------------------------------------
+
+def GP_train_bound(x, y, gp, par_in, bounds):
+    ''' 
+    Max likelihood optimization of GP hyper-parameters within bounds.
+    '''
+    args = (x, y, gp)
+    res = op.fmin_l_bfgs_b(gp_negll, par_in, \
+                            args = args, approx_grad = True, \
+                            bounds = bounds, disp = 0)
+    res[0][0] = 10**res[0][0]
+    return res[0]
+
+###----------------------------------------------
+###----------------------------------------------
+
+def gpfilt_iter(flux,time,scale,yerr=0.1,iters=5,nsig=3.0,bounds=((-1,2),(-3,None))):
+    '''Do a 1D squared exponential GP fit'''
+    mask = np.isfinite(flux)
+
+    work = np.copy(flux[mask])
+    t = np.copy(time[mask])
+
+    for j in range(iters):
+        work, err_pred, gp = gpfilt_1(work,t,scale,yerr=yerr)
+        out = np.isnan(work) + myabs((flux-work)>(nsig*err_pred))
+        work[out] = np.nan
+        scale, yerr = 10**(GP_train_bound(t[~out],work[~out],gp,
+            (np.log10(scale),np.log10(yerr)),bounds))
+    print scale, yerr
+    work, err_pred, gp = gpfilt_1(work,t,scale,yerr=yerr)
+    
+    return work
+
 
 def GetChunk(time, breakpoints, b, mask = []):
   '''
@@ -361,8 +427,9 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
     # Smooth the fluxes to compute the SOM?
     if smooth_in:
       for i in range(len(f)):
-        f[i] = SavGol(t, f[i], **kwargs)
-    
+        # f[i] = SavGol(t, f[i], **kwargs)
+        f[i] = gpfilt_iter(f[i],t,5)
+
     # The design matrix for the current chunk
     X[b] = np.ones_like(t).reshape(-1, 1)
     
@@ -385,7 +452,8 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
                          os.path.join(path, 'Seg%02d_Iter%02d.pdf' % 
                          (b + 1, n + 1)), **kwargs)
       if smooth_out:
-        cbv = SavGol(t, cbv, **kwargs)
+        # cbv = SavGol(t, cbv, **kwargs)
+        cbv = gpfilt_iter(cbv,t,5)
       
       # Append to our design matrix
       X[b] = np.hstack([X[b], cbv.reshape(-1, 1)])
