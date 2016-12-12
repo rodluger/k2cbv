@@ -18,6 +18,8 @@ from matplotlib.ticker import MaxNLocator
 import os, sys
 from urllib2 import HTTPError
 import logging
+from astropy.table import Table
+
 log = logging.getLogger(__name__)
 
 __all__ = ['FitAll', 'Fit_Halo','Fit', 'GetX', 'GetStars']
