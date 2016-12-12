@@ -532,8 +532,6 @@ def Fit_Halo(fname, campaign = None, module = None, breakpoints = [],
   
   # Get the design matrix  
   X = GetX(campaign, module, model = model, **kwargs)
-
-  print 'Loaded X'
   
   # Loop over all the light curve segments
   model = [None for b in range(len(breakpoints))]
@@ -564,7 +562,7 @@ def Fit_Halo(fname, campaign = None, module = None, breakpoints = [],
       model[b] += (model[b - 1][i0] - model[b][i1])
   
   print model
-  
+
   # Join model and normalize  
   model = np.concatenate(model)
   model -= np.nanmedian(model)
