@@ -44,7 +44,7 @@ mask = np.where(np.isfinite(flux))
 path = '.'
 
 # Get the design matrix 
-X = GetX(campaign, module, model = model, **kwargs)
+X = GetX(campaign, module, model = model)
 
 # Loop over all the light curve segments
 model = [None for b in range(len(breakpoints))]
