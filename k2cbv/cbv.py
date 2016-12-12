@@ -199,7 +199,6 @@ def gpfilt_iter(flux,time,scale,yerr=0.1,iters=5,nsig=3.0,bounds=((-1,2),(-3,Non
         work[out] = np.nan
         scale, yerr = 10**(GP_train_bound(t[~out],work[~out],gp,
             (np.log10(scale),np.log10(yerr)),bounds))
-    print scale, yerr
     work, err_pred, gp = gpfilt_1(work,t,scale,yerr=yerr)
     
     return work
