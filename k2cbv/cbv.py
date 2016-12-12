@@ -434,7 +434,7 @@ def GetX(campaign, module, model = 'everest1', clobber = False, **kwargs):
       breakpoints = lcs['breakpoints']
       fluxes = lcs['fluxes'][:kwargs.get('max_stars', None)]
     
-    # Get the design matrix  
+    # Get the design matrix 
     X = Compute(time, fluxes, breakpoints, path = path, **kwargs)
     X = np.vstack(X)
     np.savez(xfile, X = X)
@@ -459,7 +459,7 @@ def Fit(EPIC, campaign = None, module = None, model = 'everest1', **kwargs):
   time, flux, breakpoints, mask = GetLightCurve(EPIC, campaign, model = model, **kwargs)
   path = os.path.join(CBV_DAT, 'c%02d' % campaign, '%2d' % module, model)
   
-  # Get the design matrix  
+  # Get the design matrix 
   X = GetX(campaign, module, model = model, **kwargs)
   
   # Loop over all the light curve segments
@@ -527,16 +527,18 @@ def Fit_Halo(fname, campaign = None, module = None, breakpoints = [],
   lc = Table.read(fname)
 
   time, flux = lc['time'], lc['flux'] - lc['trposi'] + np.nanmedian(lc['trposi'])
-  breakpoints = [] 
   mask = np.where(np.isfinite(flux))
   path = '.'
   
-  # Get the design matrix  
+  # Get the design matrix 
   X = GetX(campaign, module, model = model, **kwargs)
+
+  print 'Loaded X'
   
   # Loop over all the light curve segments
   model = [None for b in range(len(breakpoints))]
   weights = [None for b in range(len(breakpoints))]
+
 
   for b in range(len(breakpoints)):
     
@@ -560,6 +562,8 @@ def Fit_Halo(fname, campaign = None, module = None, breakpoints = [],
       i0 = -1 - np.argmax([np.isfinite(model[b - 1][-i]) for i in range(1, len(model[b - 1]) - 1)])
       i1 = np.argmax([np.isfinite(model[b][i]) for i in range(len(model[b]))])
       model[b] += (model[b - 1][i0] - model[b][i1])
+  
+  print model
   
   # Join model and normalize  
   model = np.concatenate(model)
