@@ -98,6 +98,6 @@ ax[1].set_ylim(ax[1].get_ylim())
 ax[0].plot(time[mask], flux[mask], 'r.', markersize = 3, alpha = 0.5)
 ax[1].plot(time[mask], flux[mask] - model[mask], 'r.', markersize = 3, alpha = 0.5)
 
-pl.suptitle('Atlas Detrended' % EPIC, fontsize = 20)
+pl.suptitle('Atlas Detrended', fontsize = 20)
 fig.savefig('atlas.pdf')
 pl.close()
