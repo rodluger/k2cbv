@@ -11,7 +11,7 @@ time, breakpoints, fluxes = k2cbv.GetStars(campaign, module, model = model, max_
 # Construct the design matrix
 X = k2cbv.GetX(campaign, module, model = model, max_stars = max_stars)
 
-fname = 'EPIC_200000004_mast.fitsk2'
+fname = 'EPIC_200000004_mast.fits'
 
 # Fit all the stars
 k2cbv.Fit_Halo(fname,campaign = campaign, module = module, model = model, 
