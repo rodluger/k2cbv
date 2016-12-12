@@ -42,7 +42,7 @@ lc = Table.read(fname)
 
 halotime, flux = lc['time'], lc['flux'] - lc['trposi'] + np.nanmedian(lc['trposi'])
 matching = np.array([np.where(np.abs(time-t)<0.0001)[0][0] for t in halotime])
-time, fluxes = time[matching], fluxes[matching], X[matching,:]
+time, fluxes, X = time[matching], fluxes[:,matching], X[matching,:]
 
 mask = np.where(~np.isfinite(flux))
 path = '.'
