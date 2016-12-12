@@ -5,6 +5,7 @@ from astropy.table import Table
 import numpy as np
 import matplotlib.pyplot as pl
 import matplotlib as mpl
+from k2cbv.cbv import GetChunk
 
 mpl.style.use('seaborn-colorblind')
 
