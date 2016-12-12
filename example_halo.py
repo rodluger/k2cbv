@@ -30,7 +30,7 @@ max_stars = 150
 time, breakpoints, fluxes = k2cbv.GetStars(campaign, module, model = model, max_stars = max_stars)
 
 # Construct the design matrix
-X = k2cbv.GetX(campaign, module, model = model, max_stars = max_stars)
+X = k2cbv.GetX(campaign, module, model = model, max_stars = max_stars,clobber=True)
 
 fname = 'EPIC_200000004_mast.fits'
 

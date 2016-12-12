@@ -21,9 +21,6 @@ import logging
 from astropy.table import Table
 import george
 from george import kernels
-from SuzPyUtils.norm import *
-from SuzPyUtils.multiplot import *
-from SuzPyUtils.filter import NIF
 
 
 log = logging.getLogger(__name__)
@@ -45,7 +42,7 @@ def GetLightCurve(EPIC, campaign, model = 'everest1', **kwargs):
   elif model == 'k2sc':
     data = k2plr.K2SC(EPIC)
     time = data.time
-    flux = data.pdcflux
+    flux = data.sapflux
     mask = data.mask
     breakpoints = data.breakpoints
   else:
@@ -429,8 +426,8 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
     # Smooth the fluxes to compute the SOM?
     if smooth_in:
       for i in range(len(f)):
-        # f[i] = SavGol(t, f[i], **kwargs)
-        f[i],err,gp = gpfilt_1(f[i],t,5)
+        f[i] = SavGol(t, f[i], **kwargs)
+        # f[i] = gpfilt_iter(f[i],t,5)
 
     # The design matrix for the current chunk
     X[b] = np.ones_like(t).reshape(-1, 1)
@@ -454,8 +451,8 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
                          os.path.join(path, 'Seg%02d_Iter%02d.pdf' % 
                          (b + 1, n + 1)), **kwargs)
       if smooth_out:
-        # cbv = SavGol(t, cbv, **kwargs)
-        cbv,err,gp = gpfilt_1(cbv,t,5)
+        cbv = SavGol(t, cbv, **kwargs)
+        # cbv = gpfilt_iter(cbv,t,5)
       
       # Append to our design matrix
       X[b] = np.hstack([X[b], cbv.reshape(-1, 1)])
@@ -473,7 +470,7 @@ def Compute(time, fluxes, breakpoints, smooth_in = True, smooth_out = True,
           mf = np.delete(fluxes[i,inds], nans)
           f[i][fins] = mf - np.dot(mX, np.linalg.solve(A, np.dot(mX.T, mf)))
           if smooth_in:
-            f[i],err,gp = gpfilt_1(f[i],t,5)
+            f[i] = SavGol(t, f[i], **kwargs)
 
   return X
 
