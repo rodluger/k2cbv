@@ -514,7 +514,7 @@ def Fit(EPIC, campaign = None, module = None, model = 'everest1', **kwargs):
   fig.savefig(os.path.join(path, '%d.pdf' % EPIC))
   pl.close()
 
-def Fit_Halo(fname, campaign = None, module = None, breakpoints = breakpoints,
+def Fit_Halo(fname, campaign = None, module = None, breakpoints = [],
   model = 'everest1', **kwargs):
   '''
   Fit a given K2 target with the SOM design matrix and plot the results.
