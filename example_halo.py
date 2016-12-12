@@ -1,5 +1,24 @@
 import k2cbv
 from k2cbv import *
+from astropy.table import Table
+
+import numpy as np
+import matplotlib.pyplot as pl
+import matplotlib as mpl
+
+mpl.style.use('seaborn-colorblind')
+
+#To make sure we have always the same matplotlib settings
+#(the ones in comments are the ipython notebook settings)
+
+mpl.rcParams['figure.figsize']=(8.0,6.0)    #(6.0,4.0)
+mpl.rcParams['font.size']=18               #10 
+mpl.rcParams['savefig.dpi']= 200             #72 
+mpl.rcParams['axes.labelsize'] = 16
+mpl.rcParams['axes.labelsize'] = 16
+mpl.rcParams['xtick.labelsize'] = 12
+mpl.rcParams['ytick.labelsize'] = 12
+
 
 campaign = 4
 module = 15
