@@ -21,6 +21,9 @@ import logging
 from astropy.table import Table
 import george
 from george import kernels
+from SuzPyUtils.norm import *
+from SuzPyUtils.multiplot import *
+from SuzPyUtils.filter import NIF
 
 
 log = logging.getLogger(__name__)
