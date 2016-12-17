@@ -42,8 +42,10 @@ gp_stellar = george.GP(astr ** 2 * george.kernels.Matern32Kernel(tstr ** 2))
 gp_stellar_gen = george.GP(astr ** 2 * george.kernels.Matern32Kernel(tstr ** 2))
 
 truths = np.zeros((nflx,tlen))
+tstrs = (np.random.randn(nflx)/10. + tstr)**2.
+
 for j in range(nflx):
-  gp_stellar_gen.kernel[1] = np.log10((tstr+np.random.randn()/10.)**2)
+  gp_stellar_gen.kernel[1] = np.log10(tstrs[j])
   gp_stellar_gen.compute(time)
   truths[j,:] = gp_stellar_gen.sample()
 truths += awht * np.random.randn(nflx, tlen)
@@ -129,9 +131,9 @@ for i, ax in enumerate(axes.flatten()):
     B = np.dot(X.T, fluxes[i])
   else:
     # Red noise
-    gp_stellar.compute(time, errors[i])
+    gp_stellar.compute(time, errors[i+10])
     A = np.dot(X.T, gp_stellar.solver.apply_inverse(X))
-    B = np.dot(X.T, gp_stellar.solver.apply_inverse(fluxes[i]))
+    B = np.dot(X.T, gp_stellar.solver.apply_inverse(fluxes[i+10]))
   
   w = np.linalg.solve(A, B)
   model = np.dot(X, w)
