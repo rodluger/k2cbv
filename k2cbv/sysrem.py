@@ -39,7 +39,13 @@ time = np.linspace(0, 1, tlen)
 
 # The intrinsic fluxes (stellar variability + a little white noise)
 gp_stellar = george.GP(astr ** 2 * george.kernels.Matern32Kernel(tstr ** 2))
-truths = gp_stellar.sample(time, size = nflx)
+gp_stellar_gen = george.GP(astr ** 2 * george.kernels.Matern32Kernel(tstr ** 2))
+
+truths = np.zeros((nflx,tlen))
+for j in range(nflx):
+  gp_stellar_gen.kernel[1] = np.log10((tstr+np.random.randn()/10.)**2)
+  gp_stellar_gen.compute(time)
+  truths[j,:] = gp_stellar_gen.sample()
 truths += awht * np.random.randn(nflx, tlen)
 
 # The systematic components
