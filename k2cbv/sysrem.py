@@ -96,6 +96,7 @@ for n in range(nrec):
       X = a.reshape(-1,1)
       for j in range(nflx):
         # This next step is a time sink. Perhaps we could try the HODLR solver
+        gp_stellar.kernel[:], = gp_stellar.optimize(time,errors[j])
         gp_stellar.compute(time, errors[j])
         A = np.dot(X.T, gp_stellar.solver.apply_inverse(X))
         B = np.dot(X.T, gp_stellar.solver.apply_inverse(residuals[j]))
